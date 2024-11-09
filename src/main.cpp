@@ -5,7 +5,7 @@ int main() {
     test_initial_state();
     test_set_flags();
 
-    LDA();
-    
+    CPU_test();
+
     return 0;
 }

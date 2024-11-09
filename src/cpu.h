@@ -6,8 +6,11 @@
 class CPU {
 private:
 public:
+    uint8_t memory[0x10000];  // メモリのサイズ（64KB）
+
+
     // ステータスフラグ (Processor Status Register) のビット位置
-    enum class Flags : uint8_t {  // enum classを使用
+    enum class Flags : uint8_t {
         C = 1 << 0,  // Carry Flag
         Z = 1 << 1,  // Zero Flag
         I = 1 << 2,  // Interrupt Disable
@@ -21,13 +24,17 @@ public:
     enum class AddressingMode {
         Immediate,
         ZeroPage,
+        ZeroPageX,
+        ZeroPageY,
         Absolute,
+        AbsoluteX,
+        AbsoluteY,
         IndexedX,
         IndexedY
     };
 
 
-    CPU();  // コンストラクタの宣言
+    CPU();
 
     // ステータスフラグの操作メソッド
     void setFlag(Flags flag, bool value);
@@ -42,11 +49,12 @@ public:
     uint8_t P;    // Processor Status Register (P)
 
 
-    uint8_t readMemory(uint8_t address);  // メモリを読むメソッドの宣言
+    uint8_t readMemory(uint16_t address);  // メモリを読むメソッドの宣言
+    void writeMemory(uint16_t address, uint8_t value);
 
 // LDA命令の実装
     void LDA(uint16_t address, AddressingMode mode);
-
+    void STA(uint16_t address, AddressingMode mode);
 
 };
 
