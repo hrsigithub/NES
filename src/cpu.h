@@ -51,10 +51,14 @@ public:
 
     uint8_t readMemory(uint16_t address);  // メモリを読むメソッドの宣言
     void writeMemory(uint16_t address, uint8_t value);
+    void pushStack(uint8_t value);
 
 // LDA命令の実装
     void LDA(uint16_t address, AddressingMode mode);
     void STA(uint16_t address, AddressingMode mode);
+
+    void TAX();
+    void BRK();
 
 };
 

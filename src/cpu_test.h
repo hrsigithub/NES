@@ -5,8 +5,8 @@
 void test_initial_state();
 void test_set_flags();
 
-void LDA();
-void STA();
+// void LDA();
+// void STA();
 
 void CPU_test();
 

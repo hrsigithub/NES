@@ -1,6 +1,7 @@
 #include <iostream>
-#include "cpu.h"
+#include <cassert>
 
+#include "cpu.h"
 
 
 void test_initial_state() {
@@ -44,59 +45,65 @@ void test_set_flags() {
 void LDA() {
     CPU cpu;
 
- // 即値モードでのLDAテスト
+// 即値モードでのLDAテスト
     std::cout << "Testing LDA Immediate" << std::endl;
     cpu.LDA(0x42, CPU::AddressingMode::Immediate);  // 即値0x42をAレジスタにロード
-    std::cout << "A: " << +cpu.A << std::endl;  // Aレジスタの値を表示
-    std::cout << "Zero Flag: " << cpu.getFlag(CPU::Flags::Z) << std::endl;
-    std::cout << "Negative Flag: " << cpu.getFlag(CPU::Flags::N) << std::endl;
+    assert(cpu.A == 0x42);  // Aレジスタの値を確認
+    assert(cpu.getFlag(CPU::Flags::Z) == 0);  // Zeroフラグが0であることを確認
+    assert(cpu.getFlag(CPU::Flags::N) == 0);  // Negativeフラグが0であることを確認
 
     // ゼロページモードでのLDAテスト
     std::cout << "Testing LDA Zero Page" << std::endl;
-    cpu.LDA(0x10, CPU::AddressingMode::ZeroPage);  // ゼロページアドレス0x10から読み込み
-    std::cout << "A: " << +cpu.A << std::endl;
-    std::cout << "Zero Flag: " << cpu.getFlag(CPU::Flags::Z) << std::endl;
-    std::cout << "Negative Flag: " << cpu.getFlag(CPU::Flags::N) << std::endl;
+    cpu.writeMemory(0x10, 0x00);  // メモリ0x10に0を書き込む（Zeroフラグが立つように）
+    cpu.LDA(0x10, CPU::AddressingMode::ZeroPage);
+    assert(cpu.A == 0x00);  // Aレジスタの値を確認
+    assert(cpu.getFlag(CPU::Flags::Z) == 1);  // Zeroフラグが1であることを確認
+    assert(cpu.getFlag(CPU::Flags::N) == 0);  // Negativeフラグが0であることを確認
 
-// 絶対アドレスモードでのLDAテスト
+    // 絶対アドレスモードでのLDAテスト
     std::cout << "Testing LDA Absolute" << std::endl;
-    cpu.LDA(0x2000, CPU::AddressingMode::Absolute);  // 絶対アドレス0x2000から読み込み
-    std::cout << "A: " << +cpu.A << std::endl;
-    std::cout << "Zero Flag: " << cpu.getFlag(CPU::Flags::Z) << std::endl;
-    std::cout << "Negative Flag: " << cpu.getFlag(CPU::Flags::N) << std::endl;
+    cpu.writeMemory(0x2000, 0x80);  // メモリ0x2000に0x80を書き込む（Negativeフラグが立つように）
+    cpu.LDA(0x2000, CPU::AddressingMode::Absolute);
+    assert(cpu.A == 0x80);  // Aレジスタの値を確認
+    assert(cpu.getFlag(CPU::Flags::Z) == 0);  // Zeroフラグが0であることを確認
+    assert(cpu.getFlag(CPU::Flags::N) == 1);  // Negativeフラグが1であることを確認
 
-// インデックスモード (Xインデックス) でのLDAテスト
+    // インデックスモード (Xインデックス) でのLDAテスト
     std::cout << "Testing LDA X Indexed" << std::endl;
-    uint8_t address = 0x10; // 仮のゼロページアドレス
+    uint8_t address = 0x10;  // 仮のゼロページアドレス
+    cpu.writeMemory(0x15, 0x01);  // メモリ0x15に0x01を書き込む
     cpu.X = 0x05;  // Xレジスタにインデックス値をセット
-    cpu.LDA(address, CPU::AddressingMode::IndexedX);  // XインデックスモードでのLDA
-    std::cout << "A: " << +cpu.A << std::endl;
-    std::cout << "Zero Flag: " << cpu.getFlag(CPU::Flags::Z) << std::endl;
-    std::cout << "Negative Flag: " << cpu.getFlag(CPU::Flags::N) << std::endl;
+    cpu.LDA(address, CPU::AddressingMode::IndexedX);
+    assert(cpu.A == 0x01);  // Aレジスタの値を確認
+    assert(cpu.getFlag(CPU::Flags::Z) == 0);  // Zeroフラグが0であることを確認
+    assert(cpu.getFlag(CPU::Flags::N) == 0);  // Negativeフラグが0であることを確認
 
     // インデックスモード (Yインデックス) でのLDAテスト
     std::cout << "Testing LDA Y Indexed" << std::endl;
+    cpu.writeMemory(0x15, 0x02);  // メモリ0x15に0x02を書き込む
     cpu.Y = 0x05;  // Yレジスタにインデックス値をセット
-    cpu.LDA(address, CPU::AddressingMode::IndexedY);  // YインデックスモードでのLDA
-    std::cout << "A: " << +cpu.A << std::endl;
-    std::cout << "Zero Flag: " << cpu.getFlag(CPU::Flags::Z) << std::endl;
-    std::cout << "Negative Flag: " << cpu.getFlag(CPU::Flags::N) << std::endl;
+    cpu.LDA(address, CPU::AddressingMode::IndexedY);
+    assert(cpu.A == 0x02);  // Aレジスタの値を確認
+    assert(cpu.getFlag(CPU::Flags::Z) == 0);  // Zeroフラグが0であることを確認
+    assert(cpu.getFlag(CPU::Flags::N) == 0);  // Negativeフラグが0であることを確認
 
+    std::cout << "LDA tests passed." << std::endl;
 }
 
 void STA() {
     CPU cpu;
 
-// 即値モードでのSTAテスト（STAでは即値モードは使えません）
+    // 即値モードでのSTAテスト（STAでは即値モードは使えません）
     std::cout << "Testing STA Immediate" << std::endl;
     try {
         cpu.STA(0x42, CPU::AddressingMode::Immediate);  // 即値モードはSTAでは使えません
     } catch (const std::invalid_argument& e) {
-        std::cout << e.what() << std::endl;  // 例外をキャッチして表示
+        std::cout << "Exception caught: " << e.what() << std::endl;  // 例外メッセージを表示
     }
 
     // ゼロページモードでのSTAテスト
     std::cout << "Testing STA Zero Page" << std::endl;
+    cpu.A = 0x77;  // Aレジスタに適当な値を設定
     cpu.STA(0x10, CPU::AddressingMode::ZeroPage);  // ゼロページアドレス0x10にAレジスタの値を格納
     std::cout << "Memory at 0x10: " << +cpu.readMemory(0x10) << std::endl;
 
@@ -106,7 +113,7 @@ void STA() {
     cpu.STA(0x2000, CPU::AddressingMode::Absolute);  // AbsoluteアドレスタイプでSTAを実行
     std::cout << "Memory at 0x2000: " << +cpu.readMemory(0x2000) << std::endl;
 
-// ゼロページXインデックスモードでのSTAテスト
+    // ゼロページXインデックスモードでのSTAテスト
     std::cout << "Testing STA Zero Page X Indexed" << std::endl;
     cpu.X = 0x02;  // Xレジスタに2を設定
     cpu.STA(0x10, CPU::AddressingMode::ZeroPageX);  // ゼロページXインデックス0x12（0x10 + X）にAレジスタの値を格納
@@ -129,13 +136,42 @@ void STA() {
     cpu.Y = 0x03;  // Yレジスタに3を設定
     cpu.STA(0x2000, CPU::AddressingMode::AbsoluteY);  // 絶対アドレスYインデックス0x2003（0x2000 + Y）にAレジスタの値を格納
     std::cout << "Memory at 0x2003: " << +cpu.readMemory(0x2003) << std::endl;
-
-    // std::cout << "Testing STA Absolute" << std::endl;
-    // cpu.A = 0x55;  // Aレジスタに適当な値をセット
-    // cpu.STA(0x2000, CPU::AddressingMode::Absolute);
-    // std::cout << "Memory at 0x55: " << +cpu.readMemory(0x55) << std::endl;
-
 }
+
+void testTAX() {
+    CPU cpu;
+
+    // 初期状態の設定
+    cpu.A = 0x42;  // 任意の値をAレジスタに設定
+    cpu.X = 0;     // Xレジスタは0から始める
+
+    cpu.TAX();     // TAX命令を実行
+
+    // 結果の確認
+    assert(cpu.X == cpu.A);             // Aの値がXに転送されているか
+    assert(cpu.getFlag(CPU::Flags::Z) == (cpu.X == 0)); // ゼロフラグの設定が正しいか
+    assert(cpu.getFlag(CPU::Flags::N) == (cpu.X & 0x80)); // ネガティブフラグの設定が正しいか
+    std::cout << "TAX test passed.\n";
+}
+
+void testBRK() {
+    CPU cpu;
+
+    // 状態設定
+    cpu.PC = 0x1234; // 現在のPC
+    cpu.SP = 0xFD;   // スタックポインタの初期位置
+    cpu.setFlag(CPU::Flags::I, false); // 割り込みフラグをクリア
+
+    cpu.BRK();       // BRK命令の実行
+
+    // 結果の確認
+    uint16_t expectedPC = (cpu.memory[0xFFFF] << 8) | cpu.memory[0xFFFE];
+    assert(cpu.PC == expectedPC);              // PCが割り込みベクタに変更されたか
+    assert(cpu.SP == 0xFA);                     // スタックポインタが3つ分減少しているか
+    assert(cpu.getFlag(CPU::Flags::I) == true); // 割り込みフラグがセットされているか
+    std::cout << "BRK test passed.\n";
+}
+
 
 void CPU_test() {
     CPU cpu;
@@ -145,4 +181,8 @@ void CPU_test() {
 
     std::cout << "Starting STA Test:" << std::endl;
     STA();  // STA命令のテスト
+
+    testTAX();
+    testBRK();
+
 }
