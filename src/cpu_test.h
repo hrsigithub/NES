@@ -2,11 +2,9 @@
 #ifndef CPU_TEST_H
 #define CPU_TEST_H
 
-void test_initial_state();
-void test_set_flags();
+// void test_initial_state();
+// void test_set_flags();
 
-// void LDA();
-// void STA();
 
 void CPU_test();
 

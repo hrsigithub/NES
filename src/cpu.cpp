@@ -24,7 +24,6 @@ bool CPU::getFlag(Flags flag) const
     return (P & static_cast<uint8_t>(flag)) > 0;
 }
 
-// クラス内で定義するように変更
 void CPU::writeMemory(uint16_t address, uint8_t value)
 {
     memory[address] = value; // メモリに値を書き込む
@@ -41,6 +40,33 @@ void CPU::pushStack(uint8_t value)
     SP--;                        // スタックポインタをデクリメント
 }
 
+void CPU::step()
+{
+    uint8_t opcode = readMemory(PC); // PC（プログラムカウンタ）から命令をフェッチ
+    PC++;                            // 次の命令に進む
+
+    // opcode に基づいて適切な命令を実行
+    switch (opcode)
+    {
+    case 0xA9: // LDA Immediate
+        LDA(readMemory(PC), AddressingMode::Immediate);
+        PC++;
+        break;
+    case 0xAA: // TAX
+        TAX();
+        break;
+    case 0xE8: // INX
+        INX();
+        break;
+    case 0x00: // BRK
+        BRK();
+        break;
+    // その他の命令もここに追加
+    default:
+        throw std::runtime_error("Unknown opcode");
+    }
+}
+
 void CPU::LDA(uint16_t address, AddressingMode mode)
 {
     uint8_t value;
@@ -48,7 +74,8 @@ void CPU::LDA(uint16_t address, AddressingMode mode)
     switch (mode)
     {
     case AddressingMode::Immediate:
-        value = address & 0xFF; // 即値モード：addressは即値として使用
+        value = address & 0xFF; // 即値モード：addressは即値として使用　0xFFがないと、address
+                                // が16ビットであれば意図しない動作を引き起こす可能性がある
         break;
     case AddressingMode::ZeroPage:
         value = readMemory(address); // ゼロページモード：低位8ビットがゼロページアドレス
@@ -92,11 +119,11 @@ void CPU::STA(uint16_t address, AddressingMode mode)
         effectiveAddress = (address + Y) & 0xFFFF; // Yインデックス付き
         break;
     default:
-        break;
+        throw std::invalid_argument("Unsupported addressing mode in STA");
     }
 
     // メモリに書き込む前に、アドレスが有効であるか確認
-    if (effectiveAddress < 0x10000)
+    if (effectiveAddress <= 0xFFFF)
     {
         writeMemory(effectiveAddress, A); // Aレジスタの内容をメモリに書き込む
     }
@@ -116,20 +143,33 @@ void CPU::TAX()
 
 void CPU::BRK()
 {
-    PC++; // BRK命令は2バイトなので、次の命令に進める
+    PC += 2; // BRK命令は2バイトなので、次の命令に進める
 
     // ステータスレジスタの内容とPCをスタックに保存
     pushStack((PC >> 8) & 0xFF); // 上位バイト
     pushStack(PC & 0xFF);        // 下位バイト
 
     // フラグの設定。割り込みフラグ（I）をセットし、ブレークフラグ（B）もセット
-    setFlag(Flags::B, true);
-    setFlag(Flags::I, true);
+    setFlag(Flags::B, true); // Bフラグをセット
+    setFlag(Flags::I, true); // Iフラグをセット
 
-    pushStack(P); // ステータスレジスタをプッシュ
+    // ステータスレジスタに予約ビットを含めてスタックにプッシュ
+    uint8_t statusWithReservedBits = P | 0x30; // 0b0011xxxx（予約ビットを含む）
+    pushStack(statusWithReservedBits);
 
     // 割り込みベクタから新しいPCを取得
     uint8_t low = readMemory(0xFFFE);
     uint8_t high = readMemory(0xFFFF);
     PC = (high << 8) | low;
+}
+
+void CPU::INX()
+{
+    X += 1; // Xレジスタの値をインクリメント
+
+    // ゼロフラグの設定：Xレジスタが0であればZフラグをセット
+    setFlag(Flags::Z, X == 0);
+
+    // 負フラグの設定：Xレジスタの最上位ビットが1ならばNフラグをセット
+    setFlag(Flags::N, X & 0x80);
 }
