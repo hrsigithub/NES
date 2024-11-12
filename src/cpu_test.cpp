@@ -213,6 +213,8 @@ void testMachineCodeExecution()
     // プログラムカウンタをセット
     cpu.PC = 0x8000;
 
+    cpu.printMemory(0x8000, 16); // 0x8000 から16バイトを表示
+
     // 命令を順に実行
     cpu.step(); // LDA #$C0
     assert(cpu.A == 0xC0);
@@ -245,5 +247,19 @@ void CPU_test()
     // testBRK();
     // testINX();
 
-    testMachineCodeExecution();
+    // testMachineCodeExecution();
+
+    // テスト1：プログラムのロードと実行
+    std::vector<uint8_t> program = {0xA9, 0x10, 0xE8, 0x00}; // LDA #$10; INX; BRK
+    cpu.loadProgram(program);
+    cpu.run();
+
+    cpu.printMemory(0x8000, 16); // 0x8000 から16バイトを表示
+
+
+    // Aレジスタが10、Xレジスタが1に設定されていることを確認
+    assert(cpu.A == 0x10);
+    assert(cpu.X == 1);
+
+    std::cout << "All tests passed!" << std::endl;
 }
