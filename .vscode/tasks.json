@@ -1,23 +1,31 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "build",
-            "type": "shell",
-            "command": "clang++",
-            "args": [
-                "-g",
-                "-std=c++17",
-                "src/main.cpp",
-                "src/cpu.cpp",      // cpu.cppがビルド対象に含まれているか確認
-                "src/cpu_test.cpp", // テスト用のソースファイル
-                "-o", "emulator_test"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": ["$gcc"]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build with SDL2",
+      "type": "shell",
+      "command": "clang++",
+      "args": [
+        "-g",
+        "-std=c++17",
+        "src/main.cpp",
+        "src/cpu/cpu.cpp",
+        "src/cpu/cpu_instructions.cpp",
+        "src/cpu/cpu_utils.cpp",
+        "src/cpu/cpu_test.cpp",
+        "-o",
+        "emulator_test"
+      ],
+      "options": {
+        "shell": {
+          "executable": "/bin/zsh",
+          "args": ["-l", "-c"]
         }
-    ]
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
 }

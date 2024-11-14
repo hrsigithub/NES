@@ -1,7 +1,8 @@
-#include "cpu.h"
-#include "cpu_test.h"
+#include "cpu/cpu.h"
+#include "cpu/cpu_test.h"
 
-int main() {
+int main()
+{
     // test_initial_state();
     // test_set_flags();
 

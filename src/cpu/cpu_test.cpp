@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "cpu.h"
+#include "cpu_test.h"
 
 void test_initial_state()
 {
@@ -255,7 +256,6 @@ void CPU_test()
     cpu.run();
 
     cpu.printMemory(0x8000, 16); // 0x8000 から16バイトを表示
-
 
     // Aレジスタが10、Xレジスタが1に設定されていることを確認
     assert(cpu.A == 0x10);

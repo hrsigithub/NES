@@ -1,14 +1,15 @@
-#ifndef CPU_H
-#define CPU_H
+#ifndef CPU_CLASS_H
+#define CPU_CLASS_H
 
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 
-
 class CPU
 {
   private:
+    uint8_t fetch();
+
   public:
     uint8_t memory[0x10000]; // メモリのサイズ（64KB）
 
@@ -42,7 +43,7 @@ class CPU
     void loadProgram(const std::vector<uint8_t> &program);
     void reset();
     void run();
-    uint8_t fetch();
+
 
     // ステータスフラグの操作メソッド
     void setFlag(Flags flag, bool value);
@@ -60,10 +61,12 @@ class CPU
     void writeMemory(uint16_t address, uint8_t value);
     void pushStack(uint8_t value);
     void step();
+
+    
     void printMemory(const uint8_t memory[], size_t size);
     void printMemory(uint16_t address, size_t size);
 
-    // LDA命令の実装
+    // 命令の実装
     void LDA(uint16_t address, AddressingMode mode);
     void STA(uint16_t address, AddressingMode mode);
 
@@ -72,4 +75,4 @@ class CPU
     void INX();
 };
 
-#endif // CPU_H
+#endif
